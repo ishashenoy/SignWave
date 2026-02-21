@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignWave - {{ song_title }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body { overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .container { position: relative; z-index: 2; text-align: center; padding: 2rem; max-width: 1200px; width: 100%; }
+        .game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding: 0 1rem; }
+        .song-info { text-align: left; }
+        .song-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: rgba(250, 204, 21, 0.4); }
+        .current-song {
+            font-size: 1.3rem; font-weight: 700;
+            background: var(--gradient-heading);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .back-button {
+            padding: 10px 22px; text-decoration: none; color: #e0d4ff;
+            font-size: 13px; font-weight: 600;
+            background: var(--bg-card-primary);
+            border: 1px solid var(--border-primary);
+            transform: skewX(-8deg); transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .back-button span { display: inline-block; transform: skewX(8deg); }
+        .back-button:hover {
+            background: linear-gradient(135deg, rgba(250, 204, 21, 0.1), rgba(120, 80, 200, 0.2));
+            border-color: var(--border-primary); color: #fde68a;
+            transform: skewX(-8deg) translateX(-4px);
+        }
+        .video-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: var(--radius-xl); padding: 0.75rem;
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 60px rgba(120, 80, 200, 0.1);
+            display: inline-block; margin: 0 auto;
+        }
+        .video-container img { display: block; max-width: 100%; height: auto; border-radius: 8px; }
+        .info { margin-top: 1.5rem; font-size: 0.95rem; color: rgba(255, 255, 255, 0.5); }
+        .info p { margin: 0.4rem 0; }
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .game-header { flex-direction: column; gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-layer bg-gradient"></div>
+    <div class="bg-layer bg-scanlines"></div>
+    <div class="bg-layer bg-vignette"></div>
+
+    <div class="container">
+        <div class="game-header">
+            <div class="song-info">
+                <div class="song-label">Now Playing</div>
+                <div class="current-song">{{ song_title }}</div>
+            </div>
+            <a href="{{ url_for('song_selection') }}" class="back-button"><span>← Change Song</span></a>
+        </div>
+
+        <div class="video-container">
+            <img src="{{ url_for('video_feed') }}" alt="Video Feed">
+        </div>
+
+        <div class="info">
+            <p>Match the hand poses as they reach the hit zone!</p>
+        </div>
+    </div>
+
+    <script>
+        const statusInterval = setInterval(async () => {
+            try {
+                const res = await fetch('/api/song_status');
+                const data = await res.json();
+                if (data.complete) {
+                    clearInterval(statusInterval);
+                    window.location.href = '/results?session_id=' + data.session_id;
+                }
+            } catch (e) { /* ignore transient errors */ }
+        }, 500);
+    </script>
+</body>
+</html>

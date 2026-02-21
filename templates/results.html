@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignWave - Session Results</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <style>
+        /* ── Reset ── */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ── Page ── */
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: radial-gradient(ellipse at 60% 40%, #1e0a3a 0%, #0d0420 55%, #06010f 100%);
+            color: #d8d0f0;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* heavy radial vignette overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at center, transparent 30%, rgba(3,1,8,0.85) 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* subtle noise texture */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Layout shell ── */
+        .results-shell {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 80px;
+            height: 100vh;
+            padding: 24px 36px 18px;
+            gap: 0 24px;
+        }
+
+        /* ============================
+           LEFT COLUMN – dense data
+           ============================ */
+        .data-col {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 24px;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        /* Song header */
+        .song-header {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .song-header .label-sm {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: rgba(200, 180, 255, 0.5);
+        }
+        .song-header .song-name {
+            font-size: 1.3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        /* Score banner */
+        .score-banner {
+            display: flex;
+            align-items: baseline;
+            gap: 14px;
+            padding: 10px 18px;
+            background: rgba(90, 40, 160, 0.18);
+            border: 1px solid rgba(160, 120, 255, 0.12);
+            border-radius: 8px;
+        }
+        .score-banner .score-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: rgba(200, 180, 255, 0.45);
+        }
+        .score-banner .score-val {
+            font-size: 1.8rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            color: #f0e6ff;
+            text-shadow: 0 0 20px rgba(180, 120, 255, 0.3);
+        }
+
+        /* Stat cards row */
+        .stat-cards {
+            display: flex;
+            gap: 8px;
+        }
+        .stat-card {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: rgba(60, 20, 110, 0.25);
+            border: 1px solid rgba(160, 120, 255, 0.1);
+        }
+        .stat-card .sc-label {
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: rgba(200, 180, 255, 0.45);
+            margin-bottom: 2px;
+        }
+        .stat-card .sc-value {
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+        .sc-value.accent-green { color: #86efac; text-shadow: 0 0 12px rgba(134,239,172,0.3); }
+        .sc-value.accent-blue  { color: #a5b4fc; text-shadow: 0 0 12px rgba(165,180,252,0.3); }
+        .sc-value.accent-amber { color: #fcd34d; text-shadow: 0 0 12px rgba(252,211,77,0.3); }
+        .sc-value.accent-rose  { color: #fda4af; text-shadow: 0 0 12px rgba(253,164,175,0.3); }
+
+        /* Hit breakdown pills row */
+        .hit-pills {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .hit-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            border-radius: 6px;
+            background: rgba(50, 15, 90, 0.35);
+            border: 1px solid rgba(160, 120, 255, 0.08);
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+        .hit-pill .dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .dot-perfect { background: #facc15; box-shadow: 0 0 6px #facc15; }
+        .dot-good    { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+        .dot-ok      { background: #60a5fa; box-shadow: 0 0 6px #60a5fa; }
+        .dot-miss    { background: #f87171; box-shadow: 0 0 6px #f87171; }
+
+        /* Joint deviation mini-table */
+        .joint-section {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .joint-section .section-label {
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: rgba(200, 180, 255, 0.4);
+            margin-bottom: 5px;
+            flex-shrink: 0;
+        }
+        .joint-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding-right: 4px;
+            min-height: 0;
+        }
+        .joint-list::-webkit-scrollbar { width: 3px; }
+        .joint-list::-webkit-scrollbar-thumb { background: rgba(160,120,255,0.25); border-radius: 4px; }
+
+        .joint-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(40, 10, 80, 0.2);
+            font-size: 0.65rem;
+            flex-shrink: 0;
+        }
+        .joint-row .j-name {
+            flex: 1;
+            color: rgba(210, 195, 245, 0.7);
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .joint-row .j-bar-wrap {
+            width: 80px;
+            height: 4px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .joint-row .j-bar {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.6s ease;
+        }
+        .j-bar.bar-good   { background: linear-gradient(90deg, #4ade80, #22c55e); }
+        .j-bar.bar-warn   { background: linear-gradient(90deg, #facc15, #f59e0b); }
+        .j-bar.bar-bad    { background: linear-gradient(90deg, #f87171, #ef4444); }
+        .joint-row .j-val {
+            width: 42px;
+            text-align: right;
+            color: rgba(210, 195, 245, 0.55);
+            font-variant-numeric: tabular-nums;
+            font-size: 0.68rem;
+        }
+
+        /* ============================
+           RIGHT COLUMN – hero rank
+           ============================ */
+        .hero-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .ranking-label {
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.35em;
+            color: rgba(200, 180, 255, 0.15);
+            margin-bottom: -8px;
+        }
+
+        /* Giant percentage rank */
+        .grade-pct {
+            font-size: 9rem;
+            font-weight: 900;
+            line-height: 1;
+            background: linear-gradient(180deg, #fde68a 0%, #f59e0b 30%, #d946ef 70%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 40px rgba(217, 70, 239, 0.45)) drop-shadow(0 0 80px rgba(250, 204, 21, 0.2));
+            position: relative;
+            text-align: center;
+        }
+        /* double-outline effect via pseudo-elements */
+        .grade-pct-wrap {
+            position: relative;
+            display: inline-block;
+        }
+        .grade-pct-wrap::before {
+            content: attr(data-pct);
+            position: absolute;
+            inset: 0;
+            font-size: 9rem;
+            font-weight: 900;
+            line-height: 1;
+            -webkit-text-stroke: 6px rgba(168, 85, 247, 0.25);
+            color: transparent;
+            z-index: -1;
+            text-align: center;
+        }
+        .grade-pct-wrap::after {
+            content: attr(data-pct);
+            position: absolute;
+            inset: 0;
+            font-size: 9rem;
+            font-weight: 900;
+            line-height: 1;
+            -webkit-text-stroke: 12px rgba(88, 28, 135, 0.15);
+            color: transparent;
+            z-index: -2;
+            text-align: center;
+        }
+        .grade-pct .pct-symbol {
+            font-size: 3.5rem;
+            vertical-align: super;
+            margin-left: 2px;
+        }
+
+        /* glow pulse behind rank */
+        .rank-glow {
+            position: absolute;
+            width: 320px; height: 320px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(168,85,247,0.18) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -60%);
+            animation: glowPulse 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes glowPulse {
+            0%, 100% { opacity: 0.6; transform: translate(-50%, -60%) scale(1); }
+            50%      { opacity: 1;   transform: translate(-50%, -60%) scale(1.08); }
+        }
+
+        /* Action buttons – parallelogram style stacked */
+        .action-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 28px;
+            width: 220px;
+        }
+        .action-btn {
+            display: block;
+            padding: 12px 24px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #f0e6ff;
+            border: none;
+            cursor: pointer;
+            transform: skewX(-8deg);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .action-btn span {
+            display: inline-block;
+            transform: skewX(8deg);
+        }
+        .action-btn::after {
+            content: '';
+            position: absolute;
+            right: 0; top: 0; bottom: 0;
+            width: 4px;
+        }
+
+        .action-btn.btn-retry {
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        }
+        .action-btn.btn-retry::after { background: #c084fc; }
+        .action-btn.btn-retry:hover { background: linear-gradient(135deg, #8b5cf6 0%, #c084fc 100%); transform: skewX(-8deg) translateX(4px); }
+
+        .action-btn.btn-dash {
+            background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 100%);
+        }
+        .action-btn.btn-dash::after { background: #8b5cf6; }
+        .action-btn.btn-dash:hover { background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 100%); transform: skewX(-8deg) translateX(4px); }
+
+        .action-btn.btn-export {
+            background: linear-gradient(135deg, #312e81 0%, #4338ca 100%);
+        }
+        .action-btn.btn-export::after { background: #6366f1; }
+        .action-btn.btn-export:hover { background: linear-gradient(135deg, #3730a3 0%, #4f46e5 100%); transform: skewX(-8deg) translateX(4px); }
+
+        /* ============================
+           BOTTOM BAR – graph + back
+           ============================ */
+        .bottom-bar {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: stretch;
+            gap: 16px;
+            height: 80px;
+        }
+
+        /* Back button – slanted */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            align-self: center;
+            gap: 6px;
+            padding: 10px 22px;
+            background: linear-gradient(135deg, #581c87 0%, #7c3aed 100%);
+            color: #e0d4ff;
+            text-decoration: none;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transform: skewX(-10deg);
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .back-btn span { display: inline-block; transform: skewX(10deg); }
+        .back-btn:hover { background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%); transform: skewX(-10deg) translateX(-4px); }
+        .back-btn .arrow { font-size: 0.9rem; }
+
+        /* Performance graph widget */
+        .perf-graph {
+            flex: 1;
+            height: 100%;
+            background: rgba(40, 10, 80, 0.3);
+            border: 1px solid rgba(160, 120, 255, 0.1);
+            border-radius: 6px;
+            padding: 18px 12px 6px;
+            position: relative;
+            min-width: 0;
+        }
+        .perf-graph canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .perf-graph .graph-label {
+            position: absolute;
+            top: 6px; left: 12px;
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: rgba(200, 180, 255, 0.3);
+        }
+
+        /* ── Entrance animations ── */
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .data-col   { animation: slideInLeft  0.6s ease-out both; }
+        .hero-col   { animation: slideInRight  0.6s ease-out 0.15s both; }
+        .bottom-bar { animation: fadeUp 0.5s ease-out 0.3s both; }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .results-shell {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+                height: auto;
+                min-height: 100vh;
+                overflow-y: auto;
+                padding: 24px 20px;
+            }
+            body { overflow: auto; }
+            .hero-col { padding: 32px 0; }
+            .grade-pct { font-size: 5rem; }
+            .grade-pct-wrap::before { font-size: 5rem; }
+            .grade-pct-wrap::after  { font-size: 5rem; }
+            .grade-pct .pct-symbol  { font-size: 2rem; }
+            .action-stack { width: 180px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="results-shell">
+    <!-- ════════ LEFT: Data Column ════════ -->
+    <div class="data-col">
+        <!-- Song info -->
+        <div class="song-header">
+            <span class="label-sm">SignWave Session #{{ session.id }}</span>
+            <span class="song-name">{{ session.song_title }}</span>
+        </div>
+
+        <!-- Score banner -->
+        <div class="score-banner">
+            <span class="score-label">Score</span>
+            <span class="score-val">{{ "{:,}".format(session.score) }}</span>
+        </div>
+
+        <!-- Key stat cards -->
+        <div class="stat-cards">
+            <div class="stat-card">
+                <div class="sc-label">Accuracy</div>
+                <div class="sc-value accent-green">{{ session.accuracy|round(2) }}%</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-label">Max Combo</div>
+                <div class="sc-value accent-blue">{{ session.max_combo }}x</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-label">Total Notes</div>
+                <div class="sc-value accent-amber">{{ session.total_notes }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-label">Hits</div>
+                <div class="sc-value accent-rose">{{ session.hits }}</div>
+            </div>
+        </div>
+
+        <!-- Hit breakdown pills -->
+        <div class="hit-pills">
+            <div class="hit-pill"><span class="dot dot-perfect"></span>Perfect {{ session.perfects }}</div>
+            <div class="hit-pill"><span class="dot dot-good"></span>Good {{ session.goods }}</div>
+            <div class="hit-pill"><span class="dot dot-ok"></span>OK {{ session.oks }}</div>
+            <div class="hit-pill"><span class="dot dot-miss"></span>Miss {{ session.misses }}</div>
+        </div>
+
+        <!-- Joint deviations -->
+        {% if joint_data %}
+        <div class="joint-section">
+            <div class="section-label">Joint Deviation Breakdown</div>
+            <div class="joint-list">
+                {% for j in joint_data %}
+                {% if j.avg_deviation is not none %}
+                <div class="joint-row">
+                    <span class="j-name">{{ j.name }}</span>
+                    <div class="j-bar-wrap">
+                        {% set pct = [[(j.avg_deviation / 0.25 * 100)|round, 100]|min, 0]|max %}
+                        <div class="j-bar {% if j.avg_deviation < 0.08 %}bar-good{% elif j.avg_deviation < 0.18 %}bar-warn{% else %}bar-bad{% endif %}"
+                             style="width: {{ pct }}%"></div>
+                    </div>
+                    <span class="j-val">{{ "%.3f"|format(j.avg_deviation) }}</span>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ════════ RIGHT: Hero Rank ════════ -->
+    <div class="hero-col">
+        <div class="rank-glow"></div>
+        <span class="ranking-label">Ranking</span>
+        <div class="grade-pct-wrap" data-pct="{{ session.accuracy|round(1) }}%">
+            <div class="grade-pct">{{ session.accuracy|round(1) }}<span class="pct-symbol">%</span></div>
+        </div>
+
+        <div class="action-stack">
+            <a href="{{ url_for('song_selection') }}" class="action-btn btn-retry"><span>Retry</span></a>
+            <a href="{{ url_for('dashboard') }}" class="action-btn btn-dash"><span>Dashboard</span></a>
+            <a href="{{ url_for('export_csv', session_id=session.id) }}" class="action-btn btn-export"><span>Export CSV</span></a>
+        </div>
+    </div>
+
+    <!-- ════════ BOTTOM BAR ════════ -->
+    <div class="bottom-bar">
+        <a href="{{ url_for('song_selection') }}" class="back-btn">
+            <span class="arrow">‹</span><span>Back</span>
+        </a>
+        <div class="perf-graph">
+            <span class="graph-label">Joint Deviation Profile</span>
+            <canvas id="jointChart"></canvas>
+        </div>
+    </div>
+</div>
+
+{% if joint_data %}
+<script>
+    const ctx = document.getElementById('jointChart').getContext('2d');
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 60);
+    gradient.addColorStop(0, 'rgba(168, 130, 255, 0.3)');
+    gradient.addColorStop(1, 'rgba(168, 130, 255, 0.02)');
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ joint_data|map(attribute='name')|list|tojson }},
+            datasets: [{
+                data: {{ joint_data|map(attribute='avg_deviation')|list|tojson }},
+                borderColor: '#a78bfa',
+                borderWidth: 1.5,
+                pointRadius: 0,
+                pointHoverRadius: 3,
+                pointHoverBackgroundColor: '#c4b5fd',
+                fill: true,
+                backgroundColor: gradient,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: {
+                backgroundColor: 'rgba(30,10,58,0.9)',
+                titleColor: '#c4b5fd',
+                bodyColor: '#e0d4ff',
+                borderColor: 'rgba(160,120,255,0.2)',
+                borderWidth: 1,
+                padding: 8,
+                titleFont: { size: 10 },
+                bodyFont: { size: 11 }
+            }},
+            scales: {
+                x: { display: false },
+                y: { display: false, beginAtZero: true }
+            }
+        }
+    });
+</script>
+{% endif %}
+
+</body>
+</html>

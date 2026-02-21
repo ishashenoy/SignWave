@@ -526,7 +526,7 @@ with vision.HandLandmarker.create_from_options(options) as landmarker:
             cv2.putText(flipped, instruction, (text_x, 180), 
                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 100), 2)
         
-        cv2.imshow("SignWave Rhythm - FNF Style", flipped)
+        cv2.imshow("SignWave", flipped)
         if cv2.waitKey(5) & 0xFF == 27: 
             break
 

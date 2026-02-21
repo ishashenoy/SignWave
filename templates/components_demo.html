@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignWave - Component Library Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .demo-section {
+            position: relative;
+            z-index: 1;
+            margin: 3rem auto;
+            max-width: 1200px;
+            padding: 0 2rem;
+        }
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--color-text-faint);
+            margin-bottom: 0.5rem;
+        }
+        .component-label {
+            font-size: 0.7rem;
+            color: var(--color-text-subtle);
+            margin-top: 0.5rem;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-section">
+        <h1>SignWave Component Library</h1>
+        <p class="subtitle">Global theme components extracted from the results page</p>
+
+        <!-- Typography Section -->
+        <div style="margin-top: 4rem;">
+            <div class="section-title">Typography</div>
+            <h1>Heading 1 - Hero Title</h1>
+            <p class="component-label">&lt;h1&gt; or .heading-1</p>
+            
+            <h2 style="margin-top: 2rem;">Heading 2 - Section Title</h2>
+            <p class="component-label">&lt;h2&gt; or .heading-2</p>
+            
+            <h3 style="margin-top: 2rem;">Heading 3 - Subsection</h3>
+            <p class="component-label">&lt;h3&gt; or .heading-3</p>
+            
+            <p class="subtitle" style="margin-top: 2rem;">This is a subtitle with muted text</p>
+            <p class="component-label">.subtitle</p>
+            
+            <div style="margin-top: 2rem;">
+                <span class="label-sm">Small Label Text</span>
+                <p class="component-label">.label-sm</p>
+            </div>
+            
+            <div style="margin-top: 1rem;">
+                <span class="label-xs">Extra Small Label</span>
+                <p class="component-label">.label-xs</p>
+            </div>
+        </div>
+
+        <!-- Buttons Section -->
+        <div style="margin-top: 4rem;">
+            <div class="section-title">Buttons</div>
+            <div class="demo-grid">
+                <div>
+                    <a href="#" class="btn btn-primary">Primary Button</a>
+                    <p class="component-label">.btn .btn-primary</p>
+                </div>
+                <div>
+                    <a href="#" class="btn btn-secondary">Secondary Button</a>
+                    <p class="component-label">.btn .btn-secondary</p>
+                </div>
+                <div>
+                    <a href="#" class="btn btn-tertiary">Tertiary Button</a>
+                    <p class="component-label">.btn .btn-tertiary</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <div class="section-title" style="margin-bottom: 1rem;">Skewed Buttons (Results Style)</div>
+                <div class="flex gap-md" style="flex-wrap: wrap;">
+                    <a href="#" class="btn btn-primary btn-skewed"><span>Retry</span></a>
+                    <a href="#" class="btn btn-secondary btn-skewed"><span>Dashboard</span></a>
+                    <a href="#" class="btn btn-tertiary btn-skewed"><span>Export CSV</span></a>
+                </div>
+                <p class="component-label">.btn .btn-primary .btn-skewed</p>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <a href="#" class="btn-back"><span class="arrow">‹</span><span>Back</span></a>
+                <p class="component-label">.btn-back</p>
+            </div>
+        </div>
+
+        <!-- Cards Section -->
+        <div style="margin-top: 4rem;">
+            <div class="section-title">Cards & Panels</div>
+            <div class="demo-grid">
+                <div class="card">
+                    <div class="label-sm">Primary Card</div>
+                    <p style="margin-top: 0.5rem; color: var(--color-text-secondary);">Main content card with prominent background</p>
+                    <p class="component-label" style="margin-top: 1rem;">.card</p>
+                </div>
+                
+                <div class="card-secondary">
+                    <div class="label-sm">Secondary Card</div>
+                    <p style="margin-top: 0.5rem; color: var(--color-text-secondary);">Subtle card for less emphasis</p>
+                    <p class="component-label" style="margin-top: 1rem;">.card-secondary</p>
+                </div>
+                
+                <div class="card-subtle">
+                    <div class="label-sm">Subtle Card</div>
+                    <p style="margin-top: 0.5rem; color: var(--color-text-secondary);">Very subtle background</p>
+                    <p class="component-label" style="margin-top: 1rem;">.card-subtle</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <div class="banner">
+                    <span class="label-sm" style="display: block; margin-bottom: 4px;">Banner Component</span>
+                    <span style="font-size: 1.5rem; font-weight: 800; color: var(--color-text-primary);">Featured Content</span>
+                </div>
+                <p class="component-label">.banner</p>
+            </div>
+        </div>
+
+        <!-- Stat Components -->
+        <div style="margin-top: 4rem;">
+            <div class="section-title">Statistics</div>
+            <div class="demo-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Accuracy</span>
+                    <div class="stat-value stat-green">98.5%</div>
+                    <p class="component-label" style="margin-top: 1rem;">.stat-card .stat-green</p>
+                </div>
+                
+                <div class="stat-card">
+                    <span class="stat-label">Max Combo</span>
+                    <div class="stat-value stat-blue">42x</div>
+                    <p class="component-label" style="margin-top: 1rem;">.stat-value .stat-blue</p>
+                </div>
+                
+                <div class="stat-card">
+                    <span class="stat-label">Total Notes</span>
+                    <div class="stat-value stat-amber">156</div>
+                    <p class="component-label" style="margin-top: 1rem;">.stat-value .stat-amber</p>
+                </div>
+                
+                <div class="stat-card">
+                    <span class="stat-label">Hits</span>
+                    <div class="stat-value stat-rose">142</div>
+                    <p class="component-label" style="margin-top: 1rem;">.stat-value .stat-rose</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 3rem; text-align: center;">
+                <div class="section-title">Hero Stat</div>
+                <div class="stat-hero">95.4<span style="font-size: 2.5rem; vertical-align: super;">%</span></div>
+                <p class="component-label">.stat-hero</p>
+            </div>
+        </div>
+
+        <!-- Pills/Badges -->
+        <div style="margin-top: 4rem;">
+            <div class="section-title">Pills & Badges</div>
+            <div class="flex gap-sm" style="flex-wrap: wrap; margin-top: 1rem;">
+                <div class="pill">
+                    <span class="pill-dot dot-perfect"></span>
+                    Perfect 12
+                </div>
+                <div class="pill">
+                    <span class="pill-dot dot-good"></span>
+                    Good 8
+                </div>
+                <div class="pill">
+                    <span class="pill-dot dot-ok"></span>
+                    OK 5
+                </div>
+                <div class="pill">
+                    <span class="pill-dot dot-miss"></span>
+                    Miss 3
+                </div>
+            </div>
+            <p class="component-label">.pill with .dot-perfect/good/ok/miss</p>
+        </div>
+
+        <!-- Color Palette -->
+        <div style="margin-top: 4rem;">
+            <div class="section-title">Color Palette</div>
+            <div class="demo-grid" style="margin-top: 1.5rem;">
+                <div class="card-secondary">
+                    <div style="width: 100%; height: 60px; background: var(--color-accent-green); border-radius: 4px; box-shadow: var(--glow-green);"></div>
+                    <p style="margin-top: 0.5rem; font-size: 0.7rem; color: var(--color-text-subtle);">--color-accent-green</p>
+                </div>
+                
+                <div class="card-secondary">
+                    <div style="width: 100%; height: 60px; background: var(--color-accent-blue); border-radius: 4px; box-shadow: var(--glow-blue);"></div>
+                    <p style="margin-top: 0.5rem; font-size: 0.7rem; color: var(--color-text-subtle);">--color-accent-blue</p>
+                </div>
+                
+                <div class="card-secondary">
+                    <div style="width: 100%; height: 60px; background: var(--color-accent-amber); border-radius: 4px; box-shadow: var(--glow-amber);"></div>
+                    <p style="margin-top: 0.5rem; font-size: 0.7rem; color: var(--color-text-subtle);">--color-accent-amber</p>
+                </div>
+                
+                <div class="card-secondary">
+                    <div style="width: 100%; height: 60px; background: var(--color-accent-rose); border-radius: 4px; box-shadow: var(--glow-rose);"></div>
+                    <p style="margin-top: 0.5rem; font-size: 0.7rem; color: var(--color-text-subtle);">--color-accent-rose</p>
+                </div>
+            </div>
+
+            <div class="demo-grid" style="margin-top: 1.5rem;">
+                <div class="card-secondary">
+                    <div style="width: 100%; height: 60px; background: var(--gradient-primary); border-radius: 4px;"></div>
+                    <p style="margin-top: 0.5rem; font-size: 0.7rem; color: var(--color-text-subtle);">--gradient-primary</p>
+                </div>
+                
+                <div class="card-secondary">
+                    <div style="width: 100%; height: 60px; background: var(--gradient-secondary); border-radius: 4px;"></div>
+                    <p style="margin-top: 0.5rem; font-size: 0.7rem; color: var(--color-text-subtle);">--gradient-secondary</p>
+                </div>
+                
+                <div class="card-secondary">
+                    <div style="width: 100%; height: 60px; background: var(--gradient-tertiary); border-radius: 4px;"></div>
+                    <p style="margin-top: 0.5rem; font-size: 0.7rem; color: var(--color-text-subtle);">--gradient-tertiary</p>
+                </div>
+                
+                <div class="card-secondary">
+                    <div style="width: 100%; height: 60px; background: var(--gradient-hero); border-radius: 4px;"></div>
+                    <p style="margin-top: 0.5rem; font-size: 0.7rem; color: var(--color-text-subtle);">--gradient-hero</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Utility Classes -->
+        <div style="margin-top: 4rem; margin-bottom: 4rem;">
+            <div class="section-title">Utility Classes</div>
+            <div class="card" style="margin-top: 1.5rem; text-align: left;">
+                <h3>Flexbox</h3>
+                <p style="margin-top: 0.5rem; color: var(--color-text-subtle); font-size: 0.85rem;">
+                    .flex, .flex-col, .flex-center, .flex-between<br>
+                    .gap-xs, .gap-sm, .gap-md, .gap-lg
+                </p>
+                
+                <h3 style="margin-top: 2rem;">Spacing</h3>
+                <p style="margin-top: 0.5rem; color: var(--color-text-subtle); font-size: 0.85rem;">
+                    .mt-sm, .mt-md, .mt-lg<br>
+                    .mb-sm, .mb-md, .mb-lg
+                </p>
+                
+                <h3 style="margin-top: 2rem;">Text Alignment</h3>
+                <p style="margin-top: 0.5rem; color: var(--color-text-subtle); font-size: 0.85rem;">
+                    .text-center, .text-left, .text-right
+                </p>
+                
+                <h3 style="margin-top: 2rem;">Animations</h3>
+                <p style="margin-top: 0.5rem; color: var(--color-text-subtle); font-size: 0.85rem;">
+                    .animate-fadeIn, .animate-slideInUp, .animate-slideInDown<br>
+                    .animate-slideInLeft, .animate-slideInRight
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignWave - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <style>
+        .top-nav {
+            position: relative; z-index: 2;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 40px; border-bottom: 1px solid var(--border-subtle);
+        }
+        .top-nav h1 {
+            font-size: 24px; font-weight: 700;
+            background: var(--gradient-heading);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            filter: var(--glow-heading);
+        }
+        .nav-links { display: flex; gap: 12px; }
+        .nav-btn {
+            padding: 10px 22px; text-decoration: none; color: #e0d4ff;
+            font-size: 13px; font-weight: 600;
+            background: var(--bg-card-primary);
+            border: 1px solid var(--border-subtle);
+            transform: skewX(-8deg);
+            transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .nav-btn span { display: inline-block; transform: skewX(8deg); }
+        .nav-btn:hover {
+            background: linear-gradient(135deg, rgba(250, 204, 21, 0.08), rgba(120, 80, 200, 0.15));
+            border-color: var(--border-primary); color: #fde68a;
+        }
+        .nav-btn.accent {
+            background: linear-gradient(135deg, rgba(250, 204, 21, 0.12), rgba(255, 160, 80, 0.08));
+            border-color: var(--border-primary);
+        }
+        .nav-btn.accent:hover {
+            background: linear-gradient(135deg, rgba(250, 204, 21, 0.2), rgba(255, 160, 80, 0.15));
+            border-color: rgba(250, 204, 21, 0.4);
+        }
+
+        .page { position: relative; z-index: 2; max-width: 1200px; margin: 0 auto; padding: 32px 40px; }
+
+        .calibration-banner {
+            background: linear-gradient(135deg, rgba(250, 204, 21, 0.08), rgba(255, 160, 60, 0.05));
+            border: 1px solid var(--border-primary); border-radius: var(--radius-xl);
+            padding: 16px 24px; margin-bottom: 28px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .calibration-banner p { font-size: 14px; color: rgba(255, 255, 255, 0.6); }
+        .calibration-banner a {
+            padding: 8px 20px; border-radius: 4px; text-decoration: none;
+            background: rgba(250, 204, 21, 0.15); color: #fde68a; font-weight: 600; font-size: 13px;
+            border: 1px solid var(--border-primary); transition: all 0.2s;
+        }
+        .calibration-banner a:hover { background: rgba(250, 204, 21, 0.25); }
+
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+        .stat-box {
+            background: var(--bg-card-primary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl); padding: 20px; text-align: center;
+            transition: border-color 0.3s;
+        }
+        .stat-box:hover { border-color: var(--border-primary); }
+        .stat-box .value { font-size: 28px; font-weight: 700; }
+        .stat-box .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.35); margin-top: 4px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+
+        .card {
+            background: var(--bg-card-primary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl); padding: 24px;
+            transition: border-color 0.3s;
+        }
+        .card:hover { border-color: var(--border-primary); }
+        .card-title {
+            font-size: 16px; font-weight: 600; margin-bottom: 16px;
+            padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle);
+            background: linear-gradient(135deg, #ffffff, #c4b5fd);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+
+        .session-table { width: 100%; border-collapse: collapse; }
+        .session-table th {
+            font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: rgba(250, 204, 21, 0.35);
+            text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border-subtle);
+        }
+        .session-table td {
+            padding: 12px; font-size: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .session-table tr { transition: background 0.15s; cursor: pointer; }
+        .session-table tr:hover { background: rgba(250, 204, 21, 0.03); }
+
+        .badge {
+            padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;
+        }
+        .badge.green { background: rgba(80, 200, 120, 0.12); color: #78f0a0; border: 1px solid rgba(80, 200, 120, 0.2); }
+        .badge.yellow { background: rgba(250, 204, 21, 0.12); color: #fde68a; border: 1px solid var(--border-primary); }
+        .badge.red { background: rgba(240, 80, 100, 0.12); color: #ff8c8c; border: 1px solid rgba(240, 80, 100, 0.2); }
+
+        .compare-section { margin-top: 32px; }
+        .compare-controls {
+            display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap;
+        }
+        .compare-controls select {
+            padding: 8px 14px; border-radius: 4px; border: 1px solid var(--border-primary);
+            background: rgba(120, 80, 200, 0.08); color: #fff; font-size: 13px;
+        }
+        .compare-btn {
+            padding: 10px 22px; border: 1px solid var(--border-primary); cursor: pointer;
+            background: linear-gradient(135deg, rgba(250, 204, 21, 0.15), rgba(120, 80, 200, 0.1));
+            color: #fde68a; font-weight: 600; font-size: 13px;
+            transform: skewX(-8deg); transition: all 0.3s;
+        }
+        .compare-btn span { display: inline-block; transform: skewX(8deg); }
+        .compare-btn:hover {
+            background: linear-gradient(135deg, rgba(250, 204, 21, 0.25), rgba(120, 80, 200, 0.2));
+            border-color: rgba(250, 204, 21, 0.5);
+        }
+
+        .hand-svg { max-width: 320px; margin: 0 auto; display: block; }
+        .hand-svg circle { transition: fill 0.3s, r 0.3s; }
+
+        .filter-row {
+            display: flex; gap: 12px; margin-bottom: 20px; align-items: center;
+        }
+        .filter-row select {
+            padding: 6px 12px; border-radius: 4px; border: 1px solid var(--border-primary);
+            background: rgba(120, 80, 200, 0.08); color: #fff; font-size: 13px;
+        }
+        .filter-row label { font-size: 13px; color: rgba(255,255,255,0.4); }
+
+        @media (max-width: 800px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .grid-2 { grid-template-columns: 1fr; }
+            .top-nav { padding: 16px 20px; }
+            .page { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-layer bg-gradient"></div>
+    <div class="bg-layer bg-scanlines"></div>
+    <div class="bg-layer bg-vignette"></div>
+
+    <div class="top-nav">
+        <h1>SignWave Dashboard</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('calibrate') }}" class="nav-btn accent"><span>⚙ Calibrate</span></a>
+            <a href="{{ url_for('song_selection') }}" class="nav-btn"><span>♪ Songs</span></a>
+            <a href="{{ url_for('home') }}" class="nav-btn"><span>← Home</span></a>
+        </div>
+    </div>
+
+    <div class="page">
+        {% if not has_calibration %}
+        <div class="calibration-banner">
+            <p>⚠ Calibrate your hand poses to enable per-joint accuracy tracking.</p>
+            <a href="{{ url_for('calibrate') }}">Calibrate Now →</a>
+        </div>
+        {% endif %}
+
+        <!-- Summary Stats -->
+        <div class="stats-row">
+            <div class="stat-box">
+                <div class="value">{{ sessions|length }}</div>
+                <div class="label">Total Sessions</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color:#78f0a0;">
+                    {% if sessions %}{{ "%.1f"|format(sessions|map(attribute='accuracy')|select('gt', 0)|list|sum / [sessions|map(attribute='accuracy')|select('gt', 0)|list|length, 1]|max) }}%{% else %}—{% endif %}
+                </div>
+                <div class="label">Avg Accuracy</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color:#fde68a;">
+                    {% if sessions %}{{ sessions|map(attribute='score')|max }}{% else %}—{% endif %}
+                </div>
+                <div class="label">Best Score</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color:#c4b5fd;">
+                    {% if sessions %}{{ sessions|map(attribute='max_combo')|max }}{% else %}—{% endif %}
+                </div>
+                <div class="label">Best Combo</div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <!-- Progress Chart -->
+            <div class="card">
+                <div class="card-title">Accuracy Over Time</div>
+                <canvas id="progressChart" height="200"></canvas>
+            </div>
+
+            <!-- Hand Diagram -->
+            <div class="card">
+                <div class="card-title">Joint Accuracy (Latest Session)</div>
+                <div style="text-align:center;">
+                    <svg class="hand-svg" viewBox="0 0 300 400" id="handSvg">
+                        <!-- Palm -->
+                        <polygon points="110,250 190,250 200,180 170,150 130,150 100,180" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+                        <!-- Thumb -->
+                        <line x1="100" y1="180" x2="70" y2="170" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <line x1="70" y1="170" x2="50" y2="150" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <line x1="50" y1="150" x2="35" y2="125" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <line x1="35" y1="125" x2="25" y2="100" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <!-- Index -->
+                        <line x1="130" y1="150" x2="125" y2="110" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <line x1="125" y1="110" x2="122" y2="75" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <line x1="122" y1="75" x2="120" y2="45" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <line x1="120" y1="45" x2="118" y2="20" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <!-- Middle -->
+                        <line x1="150" y1="150" x2="150" y2="105" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <line x1="150" y1="105" x2="150" y2="65" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <line x1="150" y1="65" x2="150" y2="35" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <line x1="150" y1="35" x2="150" y2="10" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <!-- Ring -->
+                        <line x1="170" y1="150" x2="175" y2="110" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <line x1="175" y1="110" x2="178" y2="75" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <line x1="178" y1="75" x2="180" y2="45" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <line x1="180" y1="45" x2="182" y2="22" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <!-- Pinky -->
+                        <line x1="190" y1="180" x2="205" y2="145" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <line x1="205" y1="145" x2="215" y2="115" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <line x1="215" y1="115" x2="222" y2="88" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <line x1="222" y1="88" x2="228" y2="65" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <!-- Wrist -->
+                        <line x1="150" y1="250" x2="150" y2="290" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+
+                        <!-- Joint circles -->
+                        <circle id="j0"  cx="150" cy="290" r="7"/>
+                        <circle id="j1"  cx="100" cy="180" r="6"/>
+                        <circle id="j2"  cx="70"  cy="170" r="6"/>
+                        <circle id="j3"  cx="50"  cy="150" r="6"/>
+                        <circle id="j4"  cx="25"  cy="100" r="6"/>
+                        <circle id="j5"  cx="130" cy="150" r="6"/>
+                        <circle id="j6"  cx="125" cy="110" r="6"/>
+                        <circle id="j7"  cx="122" cy="75"  r="6"/>
+                        <circle id="j8"  cx="118" cy="20"  r="6"/>
+                        <circle id="j9"  cx="150" cy="150" r="6"/>
+                        <circle id="j10" cx="150" cy="105" r="6"/>
+                        <circle id="j11" cx="150" cy="65"  r="6"/>
+                        <circle id="j12" cx="150" cy="10"  r="6"/>
+                        <circle id="j13" cx="170" cy="150" r="6"/>
+                        <circle id="j14" cx="175" cy="110" r="6"/>
+                        <circle id="j15" cx="178" cy="75"  r="6"/>
+                        <circle id="j16" cx="182" cy="22"  r="6"/>
+                        <circle id="j17" cx="190" cy="180" r="6"/>
+                        <circle id="j18" cx="205" cy="145" r="6"/>
+                        <circle id="j19" cx="222" cy="88"  r="6"/>
+                        <circle id="j20" cx="228" cy="65"  r="6"/>
+                    </svg>
+                    <div style="margin-top:12px; font-size:12px; opacity:0.5;">
+                        <span style="color:#66ff66">● Good</span> &nbsp;
+                        <span style="color:#ffdd44">● Needs Work</span> &nbsp;
+                        <span style="color:#ff5555">● Problem</span>
+                    </div>
+                    <p id="no-joint-msg" style="opacity:0.4; margin-top:12px; font-size:13px;">No session data yet</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Session History -->
+        <div class="card" style="margin-bottom: 32px;">
+            <div class="card-title">Session History</div>
+            <div class="filter-row">
+                <label>Filter by song:</label>
+                <select id="songFilter" onchange="filterSessions()">
+                    <option value="">All Songs</option>
+                    {% for sid, info in songs.items() %}
+                    <option value="{{ sid }}">{{ info.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <table class="session-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Song</th>
+                        <th>Score</th>
+                        <th>Accuracy</th>
+                        <th>Notes</th>
+                        <th>Combo</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="sessionBody">
+                    {% for s in sessions %}
+                    <tr data-song="{{ s.song_id }}" onclick="window.location='/results?session_id={{ s.id }}'">
+                        <td class="ts-cell">{{ s.started_at }}</td>
+                        <td>{{ s.song_title }}</td>
+                        <td>{{ s.score }}</td>
+                        <td>
+                            <span class="badge {{ 'green' if s.accuracy >= 80 else 'yellow' if s.accuracy >= 60 else 'red' }}">
+                                {{ s.accuracy|round(1) }}%
+                            </span>
+                        </td>
+                        <td>{{ s.hits }}/{{ s.total_notes }}</td>
+                        <td>{{ s.max_combo }}</td>
+                        <td><a href="{{ url_for('export_csv', session_id=s.id) }}" onclick="event.stopPropagation()" style="color:#fde68a; font-size:12px;">CSV</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if not sessions %}
+            <p style="text-align:center; opacity:0.4; padding:32px;">No sessions recorded yet. Play a song to get started!</p>
+            {% endif %}
+        </div>
+
+        <!-- Session Comparison -->
+        <div class="card compare-section">
+            <div class="card-title">Compare Sessions</div>
+            <div class="compare-controls">
+                <select id="compareA">
+                    <option value="">Session A</option>
+                    {% for s in sessions %}
+                    <option value="{{ s.id }}">#{{ s.id }} — {{ s.song_title }} ({{ s.accuracy|round(1) }}%)</option>
+                    {% endfor %}
+                </select>
+                <span style="color:rgba(250,204,21,0.35)">vs</span>
+                <select id="compareB">
+                    <option value="">Session B</option>
+                    {% for s in sessions %}
+                    <option value="{{ s.id }}">#{{ s.id }} — {{ s.song_title }} ({{ s.accuracy|round(1) }}%)</option>
+                    {% endfor %}
+                </select>
+                <button class="compare-btn" onclick="compareSessions()"><span>Compare</span></button>
+            </div>
+            <canvas id="compareChart" height="180" style="display:none;"></canvas>
+            <p id="compare-placeholder" style="text-align:center; opacity:0.4; padding:16px; font-size:13px;">Select two sessions above to compare joint accuracy.</p>
+        </div>
+    </div>
+
+    <script>
+        // ── Format timestamps ──
+        document.querySelectorAll('.ts-cell').forEach(td => {
+            const ts = parseFloat(td.textContent);
+            if (!isNaN(ts) && ts > 1000000000) {
+                const d = new Date(ts * 1000);
+                td.textContent = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            }
+        });
+
+        // ── Progress Chart ──
+        fetch('/api/progress')
+            .then(r => r.json())
+            .then(data => {
+                if (!data.length) return;
+                new Chart(document.getElementById('progressChart'), {
+                    type: 'line',
+                    data: {
+                        labels: data.map((d, i) => '#' + d.id),
+                        datasets: [{
+                            label: 'Accuracy %',
+                            data: data.map(d => d.accuracy),
+                            borderColor: 'rgba(250,204,21,0.8)',
+                            backgroundColor: 'rgba(250,204,21,0.08)',
+                            fill: true, tension: 0.3, pointRadius: 4,
+                            pointBackgroundColor: 'rgba(253,230,138,1)',
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: 'rgba(255,255,255,0.4)' }, grid: { display: false } },
+                            y: { min: 0, max: 100, ticks: { color: 'rgba(255,255,255,0.4)' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                        }
+                    }
+                });
+            });
+
+        // ── Load latest session joint data for hand diagram ──
+        const sessions = {{ sessions|tojson }};
+        if (sessions.length > 0) {
+            const latest = sessions[0];
+            fetch('/api/session/' + latest.id + '/joints')
+                .then(r => r.json())
+                .then(joints => {
+                    if (joints.error) return;
+                    document.getElementById('no-joint-msg').style.display = 'none';
+                    joints.forEach(j => {
+                        const el = document.getElementById('j' + j.index);
+                        if (!el) return;
+                        const d = j.avg_deviation;
+                        if (d === null) { el.setAttribute('fill', '#555'); return; }
+                        if (d < 0.08) el.setAttribute('fill', '#66ff66');
+                        else if (d < 0.18) el.setAttribute('fill', '#ffdd44');
+                        else el.setAttribute('fill', '#ff5555');
+                        if (d > 0.18) el.setAttribute('r', '9');
+                    });
+                })
+                .catch(() => {});
+        }
+
+        // ── Filter sessions ──
+        function filterSessions() {
+            const filter = document.getElementById('songFilter').value;
+            document.querySelectorAll('#sessionBody tr').forEach(row => {
+                row.style.display = (!filter || row.dataset.song === filter) ? '' : 'none';
+            });
+        }
+
+        // ── Compare Sessions ──
+        let compareChartInstance = null;
+        function compareSessions() {
+            const a = document.getElementById('compareA').value;
+            const b = document.getElementById('compareB').value;
+            if (!a || !b) { alert('Select two sessions'); return; }
+            fetch('/api/compare?a=' + a + '&b=' + b)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) { alert(data.error); return; }
+                    document.getElementById('compare-placeholder').style.display = 'none';
+                    const canvas = document.getElementById('compareChart');
+                    canvas.style.display = 'block';
+                    if (compareChartInstance) compareChartInstance.destroy();
+                    compareChartInstance = new Chart(canvas, {
+                        type: 'bar',
+                        data: {
+                            labels: data.map(d => d.joint.replace(/_/g, ' ')),
+                            datasets: [
+                                {
+                                    label: 'Session A (#' + a + ')',
+                                    data: data.map(d => d.session_a),
+                                    backgroundColor: 'rgba(250,204,21,0.5)',
+                                    borderRadius: 3,
+                                },
+                                {
+                                    label: 'Session B (#' + b + ')',
+                                    data: data.map(d => d.session_b),
+                                    backgroundColor: 'rgba(196,181,253,0.5)',
+                                    borderRadius: 3,
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { labels: { color: 'rgba(255,255,255,0.6)' } }
+                            },
+                            scales: {
+                                x: { ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 9 }, maxRotation: 45 }, grid: { display: false } },
+                                y: { beginAtZero: true, ticks: { color: 'rgba(255,255,255,0.4)' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                            }
+                        }
+                    });
+                })
+                .catch(e => alert('Error: ' + e));
+        }
+    </script>
+</body>
+</html>
