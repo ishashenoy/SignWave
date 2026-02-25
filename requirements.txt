@@ -4,3 +4,4 @@ numpy
 torch
 Flask
 pygame
+scikit-learn
