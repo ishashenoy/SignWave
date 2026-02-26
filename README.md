@@ -133,11 +133,3 @@ python train.py
 
 - Change the pose set and labels consistently across `collect.py`, `train.py`, and the apps. Labels used by `train.py` are: `palm`, `1`, `2`, `3`, `fist`.
 - To tweak gameplay (spawn interval, speed, hit zone), edit constants in `app.py` or `app1.py` like `SPAWN_INTERVAL`, `NOTE_SPEED`, and `HIT_ZONE_Y`.
-
----
-
-## Next steps / Suggestions
-
-- Add unit tests around dataset processing and training pipeline.
-- Add CLI flags for `train.py` (epochs, lr, batch size) for convenience.
-- Provide a packaged MediaPipe model or instructions to regenerate `hand_landmarker.task` if needed.
