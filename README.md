@@ -1,6 +1,6 @@
-# FlowState
+# SignWave
 
-FlowState is an interactive hand-pose rhythm game and rehab/training toolkit that uses MediaPipe hand landmarks, a small PyTorch pose classifier, and OpenCV/Flask front-ends to provide two modes:
+SignWave is an interactive hand-pose rhythm game and rehab/training toolkit that uses MediaPipe hand landmarks, a small PyTorch pose classifier, and OpenCV/Flask front-ends to provide two modes:
 
 - Local real-time game (OpenCV window) — run from the command line.
 - Web dashboard + streaming (Flask) — run a web server to view sessions, calibration, and export results.
@@ -151,4 +151,3 @@ If you'd like, I can also:
 - Create a minimal Dockerfile for consistent deployment.
 
 File: [README.md](README.md)
-# FlowState
