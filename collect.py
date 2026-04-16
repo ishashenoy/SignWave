@@ -11,9 +11,7 @@ The script will exit on its own after 7 seconds of data collection.
 Landmark data will be saved to a CSV file named after the pose (e.g., fist.csv).
 '''
 
-# -------------------------
-# 1. Configuration & Setup
-# -------------------------
+# Configuration & Setup
 HAND_CONNECTIONS = [
     (0, 1), (1, 2), (2, 3), (3, 4), (0, 5), (5, 6), (6, 7), (7, 8),
     (0, 9), (9, 10), (10, 11), (11, 12), (0, 13), (13, 14), (14, 15), (15, 16),
@@ -58,9 +56,7 @@ options = vision.HandLandmarkerOptions(
 cap = cv2.VideoCapture(0)
 frame_timestamp_ms = 0
 
-# -------------------------
 # 2. Main Loop
-# -------------------------
 with vision.HandLandmarker.create_from_options(options) as landmarker:
     while cap.isOpened():
         # Check if 7 seconds have passed
