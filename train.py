@@ -5,9 +5,7 @@ import torch.nn as nn
 import numpy as np
 from sklearn.utils import shuffle
 
-# -------------------------
 # 1. Load CSVs
-# -------------------------
 dfs = []
 for file in glob.glob("dataset/*.csv"):
     df = pd.read_csv(file, header=None)
@@ -22,16 +20,12 @@ if not dfs:
 
 data = pd.concat(dfs, ignore_index=True)
 
-# -------------------------
 # 2. Split features and labels
-# -------------------------
 X = data.iloc[:, :-1].values 
 # Convert labels to string immediately to avoid integer vs string KeyErrors
 y = data.iloc[:, -1].values.astype(str) 
 
-# -------------------------
 # 3. Normalize landmarks
-# -------------------------
 def normalize_landmarks(row):
     wrist_x, wrist_y = row[0], row[1]
     norm_row = [(row[i] - wrist_x) for i in range(0, len(row), 2)] + \
@@ -43,10 +37,7 @@ def normalize_landmarks(row):
 
 X_normalized = np.array([normalize_landmarks(row) for row in X])
 
-# -------------------------
-# 4. Encode labels (Updated for your 1, 2, 3 poses)
-# -------------------------
-# These keys must match the string version of what you saved in your CSV
+# 4. Encode labels
 labels = {
     "palm": 0, 
     "1": 1, 
@@ -62,9 +53,7 @@ except KeyError as e:
     print(f"Unique labels actually found in your data: {np.unique(y)}")
     exit()
 
-# -------------------------
-# 5. Shuffle & Augment (Now with Mirroring!)
-# -------------------------
+# 5. Shuffle & Augment (with Mirroring!)
 X_normalized, y_encoded = shuffle(X_normalized, y_encoded, random_state=42)
 
 def augment_row(row):
@@ -92,7 +81,7 @@ for i in range(len(X_normalized)):
     aug_X.append(X_normalized[i])
     aug_y.append(y_encoded[i])
     
-    # 2. Add mirrored data (Simulated Left hand)
+    # 2. Add mirrored data (mirrored Left hand)
     aug_X.append(mirror_row(X_normalized[i]))
     aug_y.append(y_encoded[i])
     
@@ -103,9 +92,7 @@ for i in range(len(X_normalized)):
 X_tensor = torch.tensor(np.array(aug_X), dtype=torch.float32)
 y_tensor = torch.tensor(np.array(aug_y), dtype=torch.long)
 
-# -------------------------
 # 6. Model Definition
-# -------------------------
 class PoseNet(nn.Module):
     def __init__(self):
         super().__init__()
@@ -128,9 +115,7 @@ model = PoseNet()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 loss_fn = nn.CrossEntropyLoss()
 
-# -------------------------
 # 7. Train Loop
-# -------------------------
 epochs = 500
 for epoch in range(epochs):
     model.train()
@@ -145,8 +130,6 @@ for epoch in range(epochs):
         acc = (predicted_classes == y_tensor).float().mean().item()
         print(f"Epoch {epoch:03d} | Loss: {loss.item():.4f} | Acc: {acc*100:.2f}%")
 
-# -------------------------
 # 8. Save
-# -------------------------
 torch.save(model.state_dict(), "pose_model.pt")
 print("Model saved successfully!")
